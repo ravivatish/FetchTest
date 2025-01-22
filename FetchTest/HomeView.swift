@@ -4,63 +4,76 @@
 //
 //  Created by ravinder vatish on 1/18/25.
 //
-
 import SwiftUI
 
 struct HomeView: View {
-    @ObservedObject var viewModel : HomeViewModel
+    @ObservedObject var viewModel: HomeViewModel
     init(viewModel: HomeViewModel) {
         self.viewModel = viewModel
     }
     var body: some View {
         List {
             ForEach(viewModel.recipes) { recipe in
-                VStack (alignment: .leading) {
-                    Grid(alignment: .leading) {
-                        GridRow {
-                            Text("Name:")
-                            Text(recipe.name)
-                        }
-                        GridRow {
-                            Text("Cuisine:")
-                            Text(recipe.cuisine)
-                        }
-                    }
-                    if( recipe.image != nil ) {
-                        HStack(alignment: .center) {
-                            Spacer()
-                            Image(uiImage: recipe.image!).resizable()
-                                .scaledToFit()
-                                .frame(width: 300,height: 300)
-                            Spacer()
-                        }
-                    }
-                    else {
-                        HStack(alignment: .center) {
-                            Spacer()
-                            Image(systemName: "photo").resizable()
-                                .scaledToFit()
-                                .frame(width: 300,height: 300)
-                            Spacer()
-                            
-                        }
-                    }
-                }
+                RecipeRow(recipe: recipe)
             }
-            
         }
         .padding()
-        .task() {
-            Task {
-                await viewModel.getRecipes()
-            }
+        .task {
+            await viewModel.getRecipes()
         }
-        
     }
 }
 
+struct RecipeRow: View {
+    let recipe: RecipeData
+    var body: some View {
+        VStack(alignment: .leading) {
+            RecipeDetails(recipe: recipe)
+            RecipeImage(image: recipe.image)
+        }
+    }
+}
+
+struct RecipeDetails: View {
+    let recipe: RecipeData
+    var body: some View {
+        Grid(alignment: .leading) {
+            GridRow {
+                Text("Name:")
+                Text(recipe.name)
+            }
+            GridRow {
+                Text("Cuisine:")
+                Text(recipe.cuisine)
+            }
+        }
+    }
+}
+
+struct RecipeImage: View {
+    let image: UIImage?
+
+    var body: some View {
+        HStack(alignment: .center) {
+            Spacer()
+            if let image = image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 300, height: 300)
+            } else {
+                Image(systemName: "photo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 300, height: 300)
+            }
+            Spacer()
+        }
+    }
+}
 
 #Preview {
+    let useCase = HomeUseCaseImp(networkService: NetworkService(), storageService: StorageService(limit: 40))
     HomeView(viewModel:  HomeViewModel(
-        networkService:NetworkService(), storageService: StorageService(limit: 20)))
+        useCase:useCase))
 }
