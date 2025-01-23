@@ -43,7 +43,7 @@ Testing was a big part of this project. Here’s what’s covered:
 - **ViewModel Logic**: Kept the ViewModel simple and focused only on updating the UI.
 
 ### Time Spent:
-- Total: 5 hours
+- Total: 5 to 6 hours
  
 ### Trade-offs and Decisions:
 - **Caching**: Chose an array-based LRU system because it’s quick to implement, even though it’s not the most efficient.
