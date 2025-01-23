@@ -11,15 +11,33 @@ struct HomeView: View {
     init(viewModel: HomeViewModel) {
         self.viewModel = viewModel
     }
+    
     var body: some View {
-        List {
-            ForEach(viewModel.recipes) { recipe in
-                RecipeRow(recipe: recipe)
+        NavigationView {
+            Group {
+                if(viewModel.recipes.isEmpty) {
+                    Text("No Recipes to display")
+                }
+                else {
+                    List {
+                        ForEach(viewModel.recipes) { recipe in
+                            RecipeRow(recipe: recipe)
+                        }
+                    }
+                }
             }
-        }
-        .padding()
-        .task {
-            await viewModel.getRecipes()
+            .padding()
+            .navigationTitle("Recipes")
+            .alert("Something went wrong", isPresented: $viewModel.showError) {
+                Button("OK", role: .cancel) {
+                    viewModel.showError = false
+                }
+            } message: {
+                Text("Please try again later.")
+            }
+            .task {
+                await viewModel.getRecipes()
+            }
         }
     }
 }
@@ -52,7 +70,6 @@ struct RecipeDetails: View {
 
 struct RecipeImage: View {
     let image: UIImage?
-
     var body: some View {
         HStack(alignment: .center) {
             Spacer()
@@ -74,6 +91,5 @@ struct RecipeImage: View {
 
 #Preview {
     let useCase = HomeUseCaseImp(networkService: NetworkService(), storageService: StorageService(limit: 40))
-    HomeView(viewModel:  HomeViewModel(
-        useCase:useCase))
+    HomeView(viewModel: HomeViewModel(useCase: useCase))
 }

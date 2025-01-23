@@ -15,7 +15,7 @@ enum NetworkErrors : Error {
 }
 
 enum AppURLS : String {
-    case RecipesUrl = "https://d3jbb8n5wk0qxi.cloudfront.net/recipes.json"
+    case recipesUrl = "https://d3jbb8n5wk0qxi.cloudfront.net/recipes.json"
     case malformedUrl = "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-malformed.json"
     case emptyUrl = "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-empty.json"
     
@@ -25,15 +25,14 @@ enum AppURLS : String {
 }
 
 protocol NetworkServiceProtocol {
-    func getRecipes() async  -> [Recipe];
+    func getRecipes() async throws -> [Recipe];
     func getImage(url: String) async -> Data?
 }
 
 class NetworkService : NetworkServiceProtocol {
-    
-    func getRecipes() async -> [Recipe] {
+    func getRecipes() async throws ->  [Recipe] {
         do {
-            let responseData =  try await URLSession.shared.data(from: AppURLS.RecipesUrl.appURL())
+            let responseData =  try await URLSession.shared.data(from: AppURLS.recipesUrl.appURL())
             guard let response = responseData.1 as? HTTPURLResponse, 200...299 ~= response.statusCode else {
                 throw NetworkErrors.networkRequestFailed
             }
@@ -42,7 +41,7 @@ class NetworkService : NetworkServiceProtocol {
         }
         catch {
             print(error)
-            return []
+            throw error
         }
     }
     

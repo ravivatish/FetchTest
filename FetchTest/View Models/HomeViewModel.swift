@@ -15,18 +15,24 @@ struct RecipeData : Identifiable {
 }
 
 @MainActor
-class HomeViewModel : ObservableObject {
-    @Published var recipes: [RecipeData]  = []
-    var useCase : HomeUseCase
+class HomeViewModel: ObservableObject {
+    @Published var recipes: [RecipeData] = []
+    @Published var showError: Bool = false
+    var useCase: HomeUseCase
+
     init(useCase: HomeUseCase) {
         self.useCase = useCase
     }
-    
+
     func getRecipes() async {
-        recipes = await useCase.getRecipes()
-        //fetch the images
-        for (index,recipe) in recipes.enumerated() {
-            recipes[index].image = await useCase.getImage(url: recipe.url)
+        if let data = await useCase.getRecipes() {
+            recipes = data
+            for (index, recipe) in recipes.enumerated() {
+                recipes[index].image = await useCase.getImage(url: recipe.url)
+            }
+        } else {
+            // Update error state
+            showError = true
         }
     }
 }

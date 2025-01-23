@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol HomeUseCase {
-    func getRecipes()  async  -> [RecipeData]
+    func getRecipes()  async  -> [RecipeData]?
     func getImage(url: String) async -> UIImage?
 }
 class HomeUseCaseImp: HomeUseCase {
@@ -20,12 +20,18 @@ class HomeUseCaseImp: HomeUseCase {
         self.storageService = storageService
     }
     
-    func getRecipes()  async  -> [RecipeData] {
-        let recipesList = await networkService.getRecipes()
-       let recipes = recipesList.map { recipe in
-           RecipeData(id: recipe.uuid, name: recipe.name, cuisine: recipe.cuisine, url: recipe.largePhotoURL)
+    func getRecipes()  async  -> [RecipeData]? {
+        
+        do {
+            let recipesList = try await networkService.getRecipes()
+            let recipes = recipesList.map { recipe in
+                RecipeData(id: recipe.uuid, name: recipe.name, cuisine: recipe.cuisine, url: recipe.largePhotoURL)
+            }
+            return recipes
         }
-        return recipes
+        catch {
+            return nil
+        }
     }
     func getImage(url: String) async -> UIImage? {
         if let data = await storageService.findImage(url: url) {
