@@ -27,12 +27,23 @@ class HomeViewModel: ObservableObject {
     func getRecipes() async {
         if let data = await useCase.getRecipes() {
             recipes = data
-            for (index, recipe) in recipes.enumerated() {
-                recipes[index].image = await useCase.getImage(url: recipe.url)
+            
+            await withTaskGroup(of: (Int, UIImage?).self) { group in
+                for (index, recipe) in recipes.enumerated() {
+                    group.addTask {
+                        let imageData = await self.useCase.getImage(url: recipe.url)
+                        return (index, imageData)
+                    }
+                }
+                for await (index, imageData) in group {
+                    if let imageData = imageData {
+                        recipes[index].image = imageData
+                    }
+                }
             }
         } else {
-            // Update error state
             showError = true
         }
     }
+
 }
